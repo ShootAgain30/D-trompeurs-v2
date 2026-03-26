@@ -13,9 +13,12 @@ body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;
 @keyframes slideFromRight{from{transform:translateX(100vw)}to{transform:translateX(0)}}
 body.go-left{animation:slideToRight 0.4s ease forwards}
 @keyframes slideToRight{from{transform:translateX(0)}to{transform:translateX(100vw)}}
-.header{display:flex;align-items:center;justify-content:center;gap:3vw;margin-bottom:5vw}
-.header img{height:8vw;width:auto}
-.title{color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7}
+.header{display:flex;align-items:center;gap:3vw;margin-bottom:5vw;overflow:hidden;}
+.header img{height:8vw;width:auto;flex-shrink:0;}
+.title-wrap{overflow:hidden;flex:1;}
+.title{display:inline-block;color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7;white-space:nowrap;transform:translateX(-100%);}
+.title.scrolled{animation:scrollOnce 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;}
+@keyframes scrollOnce{0%{transform:translateX(-100%);}100%{transform:translateX(0);}}
 .panel{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4vw;padding:4vw;margin-bottom:4vw}
 .panel-title{font-size:4vw;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4vw;text-align:center}
 .quai-input{width:100%;background:#2e2e2e;border:1px solid #555;border-radius:3vw;color:#fff;padding:4vw;font-size:7vw;outline:none;margin-bottom:4vw;text-align:center}
@@ -35,8 +38,8 @@ body.go-left{animation:slideToRight 0.4s ease forwards}
 <body>
 
 <div class="header">
-  <span class="title">Codes détrompeurs</span>
-  <img src="Carrefour NB.png" alt="Carrefour" />
+  <div class="title-wrap"><span class="title" id="mainTitle">Codes détrompeurs</span></div>
+  <img src="Carrefour NB.png" alt="Carrefour" id="headerLogo" />
 </div>
 
 <div class="panel">
@@ -83,17 +86,15 @@ function resetQuai(){
   document.getElementById("resultQuai").innerHTML='<span class="rn">Code Détrompeur</span>';
 }
 
-// GESTION DU SERVICE WORKER
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('service-worker.js')
     .then(()=>console.log('SW ok'))
     .catch(e=>console.log('SW err',e));
 }
 
-// FONCTION POUR AFFICHER LA VERSION
 async function displayVersion() {
   try {
-    const response = await fetch('./service-worker.js'); 
+    const response = await fetch('./service-worker.js');
     const text = await response.text();
     const match = text.match(/CACHE_NAME\s*=\s*['"]detrompeurs-(V[\d.]+)['"]/);
     if (match && match[1]) {
@@ -104,6 +105,9 @@ async function displayVersion() {
 
 displayVersion();
 setTimeout(()=>document.getElementById("inputQuai").focus(),500);
+setTimeout(() => {
+  document.getElementById('mainTitle').classList.add('scrolled');
+}, 100);
 </script>
 </body>
 </html>
