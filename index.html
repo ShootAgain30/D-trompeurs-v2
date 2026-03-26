@@ -10,9 +10,12 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 input{-webkit-user-select:text;user-select:text}
 body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;padding-bottom:16vw}
-.header{display:flex;align-items:center;justify-content:center;gap:3vw;margin-bottom:5vw}
-.header img{height:8vw;width:auto}
-.title{color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7}
+.header{display:flex;align-items:center;gap:3vw;margin-bottom:5vw;overflow:hidden;}
+.header img{height:8vw;width:auto;flex-shrink:0;}
+.title-wrap{overflow:hidden;flex:1;}
+.title{display:inline-block;color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7;white-space:nowrap;transform:translateX(100vw);}
+.title.scrolled{animation:scrollOnce 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;}
+@keyframes scrollOnce{0%{transform:translateX(100vw);}100%{transform:translateX(0);}}
 .panel{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4vw;padding:4vw;margin-bottom:4vw}
 .panel-title{font-size:4vw;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4vw;text-align:center}
 .pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:2vw 4vw;margin-bottom:3vw}
@@ -47,17 +50,18 @@ body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;
 /* ── LIGNE DE CELLULES ANIMÉES ── */
 .mem-line{
   position:relative;
-  height:11vw; /* hauteur fixe pour contenir les cellules absolues */
+  width:100%;
+  height:12vw;
+  overflow:hidden;
 }
 .mem-cell{
   position:absolute;
-  width:16vw;
-  height:10vw;
+  height:11vw;
   border-radius:2vw;
   font-size:5vw;
   font-weight:bold;
   text-align:center;
-  line-height:10vw;
+  line-height:11vw;
   border-width:1px;
   border-style:solid;
   background:#0d0d0d;
@@ -87,8 +91,8 @@ body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;
 <body>
 
 <div class="header">
-  <span class="title">Codes détrompeurs</span>
   <img src="Carrefour NB.png" alt="Carrefour" />
+  <div class="title-wrap"><span class="title" id="mainTitle">Codes détrompeurs</span></div>
 </div>
 
 <div class="panel">
@@ -252,23 +256,23 @@ function vw(val){ return val * window.innerWidth / 100; }
 
 function initLineAnimation(lineEl) {
   const cells = lineEl.querySelectorAll('.mem-cell');
-  const cellW = vw(CELL_W_VW);
-  const gap   = vw(GAP_VW);
+  const totalW = lineEl.offsetWidth;
+  const GAP = totalW * 0.02; // 2% de la largeur comme gap
+  const cellW = (totalW - (N_CELLS - 1) * GAP) / N_CELLS;
 
-  // Positions déployées
-  const pos = Array.from({length: N_CELLS}, (_, i) => i * (cellW + gap));
+  // Appliquer la largeur calculée à chaque cellule
+  cells.forEach(cell => { cell.style.width = cellW + 'px'; });
+
+  const pos = Array.from({length: N_CELLS}, (_, i) => i * (cellW + GAP));
   const cur = [...pos];
   const zInit = [10, 8, 6, 4, 2];
 
-  // Placer les cellules en absolu
+  // Placer les cellules
   cells.forEach((cell, i) => {
     cell.style.left   = pos[i] + 'px';
     cell.style.zIndex = zInit[i];
     cell.style.top    = '0px';
   });
-
-  // Largeur du conteneur = largeur totale déployée
-  lineEl.style.width = (N_CELLS * cellW + (N_CELLS - 1) * gap) + 'px';
 
   let collapsed = false;
   let animating = false;
@@ -349,6 +353,7 @@ async function displayVersion() {
 renderMemories();
 displayVersion();
 document.getElementById("p0").focus();
+setTimeout(() => document.getElementById('mainTitle').classList.add('scrolled'), 100);
 </script>
 </body>
 </html>
