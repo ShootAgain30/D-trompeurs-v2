@@ -10,9 +10,9 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 input{-webkit-user-select:text;user-select:text}
 body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;padding-bottom:16vw}
-.header{position:relative;display:flex;align-items:center;margin-bottom:5vw;overflow:hidden;}
-.header img{height:8vw;width:auto;flex-shrink:0;z-index:1;}
-.title-wrap{position:absolute;left:0;right:0;display:flex;justify-content:center;overflow:hidden;pointer-events:none;}
+.header{display:flex;align-items:center;gap:3vw;margin-bottom:5vw;overflow:hidden;}
+.header img{height:8vw;width:auto;flex-shrink:0;}
+.title-wrap{overflow:hidden;flex:1;}
 .title{display:inline-block;color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7;white-space:nowrap;transform:translateX(100vw);}
 .title.scrolled{animation:scrollOnce 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;}
 @keyframes scrollOnce{0%{transform:translateX(100vw);}100%{transform:translateX(0);}}
