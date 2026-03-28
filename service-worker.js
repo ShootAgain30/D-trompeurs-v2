@@ -1,10 +1,10 @@
 const CACHE_NAME = 'detrompeurs-V2.0.3' ;
 const FILES = [
   './',
-  'data.json",
   'index.html',
   'quais.html',
   'manifest.json',
+  'data.json",
   'Icon-192.png',
   'Icon-512.png',
   'Carrefour NB.png'
