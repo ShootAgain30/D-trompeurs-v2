@@ -1,34 +1,43 @@
-const CACHE_NAME = 'detrompeurs-V2.0.3' ;
+const CACHE_NAME = 'detrompeurs-V2.0.4';
 const FILES = [
   './',
   'index.html',
   'quais.html',
   'manifest.json',
-  'data.json",
+  'data.json',
   'Icon-192.png',
   'Icon-512.png',
   'Carrefour NB.png'
 ];
-self.addEventListener('install', e => {
+
+self.addEventListener('install', function(e) {
   e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(FILES))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(function(cache) {
+      return cache.addAll(FILES.map(f => new Request(f, { cache: 'reload' })));
+    })
   );
+  self.skipWaiting();
 });
-self.addEventListener('activate', e => {
+
+self.addEventListener('activate', function(e) {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(k) { return k !== CACHE_NAME; })
+            .map(function(k) { return caches.delete(k); })
+      );
+    })
   );
+  self.clients.claim();
 });
-self.addEventListener('fetch', e => {
+
+self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request)
-      .then(response => response || fetch(e.request))
+    caches.match(e.request, { ignoreSearch: true, ignoreVary: true })
+      .then(function(response) {
+        return response || fetch(e.request).catch(function() {
+          return new Response('', { status: 404 });
+        });
+      })
   );
 });
