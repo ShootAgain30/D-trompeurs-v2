@@ -1,4 +1,4 @@
-const CACHE_NAME = 'detrompeurs-V2.0.5';
+const CACHE_NAME = 'detrompeurs-V2.0.7';
 const FILES = [
   './',
   'index.html',
@@ -32,6 +32,17 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      caches.match('index.html', { ignoreSearch: true, ignoreVary: true })
+        .then(function(response) {
+          return response || fetch(e.request).catch(function() {
+            return new Response('', { status: 404 });
+          });
+        })
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true, ignoreVary: true })
       .then(function(response) {
