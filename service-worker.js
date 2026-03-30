@@ -34,10 +34,10 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      caches.match('index.html', { ignoreSearch: true, ignoreVary: true })
+      caches.match(e.request, { ignoreSearch: true, ignoreVary: true })
         .then(function(response) {
           return response || fetch(e.request).catch(function() {
-            return new Response('', { status: 404 });
+            return caches.match('index.html');
           });
         })
     );
