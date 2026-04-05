@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<title>Détrompeurs Carrefour</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+body{background:#111;font-family:Arial,sans-serif;min-height:100dvh;padding:4vw;padding-bottom:16vw}
+.header{display:flex;align-items:center;gap:3vw;margin-bottom:5vw;overflow:hidden;}
+.header img{height:8vw;width:auto;flex-shrink:0;}
+.title-wrap{overflow:hidden;flex:1;}
+.title{display:inline-block;color:#fff;font-size:5vw;font-weight:bold;letter-spacing:1px;text-transform:uppercase;opacity:.7;white-space:nowrap;transform:translateX(100vw);}
+.title.scrolled{animation:scrollOnce 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;}
+@keyframes scrollOnce{0%{transform:translateX(100vw);}100%{transform:translateX(0);}}
+.panel{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4vw;padding:4vw;margin-bottom:4vw}
+.panel-title{font-size:4vw;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4vw;text-align:center}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:2vw 4vw;margin-bottom:3vw}
+.col-head{font-size:3.5vw;color:#666;text-align:center;padding-bottom:2vw;border-bottom:1px solid #2a2a2a;margin-bottom:1vw}
+.pick-row-label{font-size:3.5vw;font-weight:bold;text-align:center;margin-bottom:1.5vw}
+.pick-input{width:100%;border-radius:3vw;padding:4vw 2vw;font-size:7vw;font-weight:bold;text-align:center;outline:none;border-top-width:1vw;border-top-style:solid;border-left:1px solid #555;border-right:1px solid #555;border-bottom:1px solid #555;background:#2e2e2e}
+.pick-input::placeholder{color:#444}
+.pick-result{width:100%;border-radius:3vw;padding:4vw 2vw;font-size:7vw;font-weight:bold;text-align:center;border-top-width:1vw;border-top-style:solid;border-left:1px solid #222;border-right:1px solid #222;border-bottom:1px solid #222;background:#0d0d0d}
+.c-blanc .pick-row-label{color:#fff}
+.c-blanc .pick-input{border-top-color:#fff;color:#fff}
+.c-blanc .pick-result{border-top-color:#fff;color:#fff}
+.c-jaune .pick-row-label{color:#facc15}
+.c-jaune .pick-input{border-top-color:#facc15;color:#facc15}
+.c-jaune .pick-result{border-top-color:#facc15;color:#facc15}
+.c-bleu .pick-row-label{color:#60a5fa}
+.c-bleu .pick-input{border-top-color:#60a5fa;color:#60a5fa}
+.c-bleu .pick-result{border-top-color:#60a5fa;color:#60a5fa}
+.c-vert .pick-row-label{color:#4ade80}
+.c-vert .pick-input{border-top-color:#4ade80;color:#4ade80}
+.c-vert .pick-result{border-top-color:#4ade80;color:#4ade80}
+.c-rouge .pick-row-label{color:#f87171}
+.c-rouge .pick-input{border-top-color:#f87171;color:#f87171}
+.c-rouge .pick-result{border-top-color:#f87171;color:#f87171}
+.dim{color:#333}
+.memory-buttons{display:flex;gap:3vw;margin-bottom:3vw}
+.btn-memory{flex:1;background:#2e2e2e;border:1px solid #fff;border-radius:3vw;color:#fff;font-size:4vw;font-weight:bold;padding:3vw;text-align:center;cursor:pointer}
+.btn-reset{flex:1;background:#2e2e2e;border:1px solid #f87171;border-radius:3vw;color:#f87171;font-size:4vw;font-weight:bold;padding:3vw;text-align:center;cursor:pointer}
+.memory-msg{color:#facc15;font-size:3.5vw;text-align:center;margin-bottom:2vw}
+.mem-block{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:3vw;padding:2.5vw 3vw;margin-bottom:2vw}
+.mem-addr{font-size:3.8vw;color:#aaa;margin-bottom:2vw;letter-spacing:0.5px}
+
+/* ── LIGNE DE CELLULES ANIMÉES ── */
+.mem-line{
+  position:relative;
+  width:100%;
+  height:12vw;
+  overflow:visible;
+}
+/* wrap = le conteneur qui se déplace (position + perspective) */
+.mem-wrap{
+  position:absolute;
+  height:11vw;
+  top:0;
+  transition: left 800ms cubic-bezier(0.77,0,0.18,1);
+  perspective: 120px;
+}
+/* cell = la face visible qui flippe */
+.mem-cell{
+  width:100%;
+  height:100%;
+  border-radius:2vw;
+  font-size:5vw;
+  font-weight:bold;
+  text-align:center;
+  line-height:11vw;
+  border-width:1px;
+  border-style:solid;
+  background:#0d0d0d;
+  display:block;
+}
+.mem-wrap.c0{cursor:pointer;}
+.mem-wrap.c0 .mem-cell{border-color:#fff;color:#fff;}
+.mem-wrap.c1 .mem-cell{border-color:#facc15;color:#facc15;}
+.mem-wrap.c2 .mem-cell{border-color:#60a5fa;color:#60a5fa;}
+.mem-wrap.c3 .mem-cell{border-color:#4ade80;color:#4ade80;}
+.mem-wrap.c4 .mem-cell{border-color:#f87171;color:#f87171;}
+
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:500;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.overlay-box{background:#1a1a1a;border:1px solid #444;border-radius:4vw;padding:6vw;width:85vw}
+.overlay-title{color:#aaa;font-size:4vw;margin-bottom:4vw;text-align:center}
+.overlay-input{width:100%;background:#2e2e2e;border:1px solid #555;border-radius:3vw;color:#fff;padding:4vw;font-size:6vw;outline:none;text-align:center;margin-bottom:4vw}
+.overlay-input::placeholder{color:#555}
+.overlay-buttons{display:flex;gap:3vw}
+.overlay-ok{flex:1;background:#2e2e2e;border:1px solid #4ade80;border-radius:3vw;color:#4ade80;font-size:4vw;font-weight:bold;padding:3vw;text-align:center;cursor:pointer}
+.overlay-cancel{flex:1;background:#2e2e2e;border:1px solid #f87171;border-radius:3vw;color:#f87171;font-size:4vw;font-weight:bold;padding:3vw;text-align:center;cursor:pointer}
+.nav-dot{position:fixed;bottom:calc(4vw + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:3vw;z-index:200}
+.dot{width:2.5vw;height:2.5vw;border-radius:50%;background:#444;cursor:pointer}
+.dot.active{background:#fff}
+.signature{text-align:right;font-size:3vw;color:#444;font-style:italic;margin-top:2vw;padding-right:1vw}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="Carrefour NB.png" alt="Carrefour" />
+  <div class="title-wrap"><span class="title" id="mainTitle">Codes détrompeurs</span></div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Picking — codes couleurs</div>
+  <div class="pick-grid">
+    <div class="col-head">Saisie</div>
+    <div class="col-head">Résultat</div>
+    <div class="c-blanc"><div class="pick-row-label">Blanc</div><input class="pick-input" type="text" inputmode="numeric" id="p0" placeholder="—" oninput="searchPicking(0)" onclick="handlePickClick(0)"/></div>
+    <div class="c-blanc"><div class="pick-row-label">Blanc</div><div class="pick-result" id="r0"><span class="dim">—</span></div></div>
+    <div class="c-jaune"><div class="pick-row-label">Jaune</div><input class="pick-input" type="text" inputmode="numeric" id="p1" placeholder="—" oninput="searchPicking(1)" onclick="handlePickClick(1)"/></div>
+    <div class="c-jaune"><div class="pick-row-label">Jaune</div><div class="pick-result" id="r1"><span class="dim">—</span></div></div>
+    <div class="c-bleu"><div class="pick-row-label">Bleu</div><input class="pick-input" type="text" inputmode="numeric" id="p2" placeholder="—" oninput="searchPicking(2)" onclick="handlePickClick(2)"/></div>
+    <div class="c-bleu"><div class="pick-row-label">Bleu</div><div class="pick-result" id="r2"><span class="dim">—</span></div></div>
+    <div class="c-vert"><div class="pick-row-label">Vert</div><input class="pick-input" type="text" inputmode="numeric" id="p3" placeholder="—" oninput="searchPicking(3)" onclick="handlePickClick(3)"/></div>
+    <div class="c-vert"><div class="pick-row-label">Vert</div><div class="pick-result" id="r3"><span class="dim">—</span></div></div>
+    <div class="c-rouge"><div class="pick-row-label">Rouge</div><input class="pick-input" type="text" inputmode="numeric" id="p4" placeholder="—" oninput="searchPicking(4)" onclick="handlePickClick(4)"/></div>
+    <div class="c-rouge"><div class="pick-row-label">Rouge</div><div class="pick-result" id="r4"><span class="dim">—</span></div></div>
+  </div>
+  <div class="memory-buttons">
+    <div class="btn-memory" onclick="askAddress()">MEMORY</div>
+    <div class="btn-reset" onclick="resetMemory()">RESET</div>
+  </div>
+  <div class="memory-msg" id="memMsg"></div>
+  <div id="memList"></div>
+</div>
+
+<div class="signature">Développé par Bernard V <span id="app-version"></span></div>
+
+<div class="nav-dot">
+  <div class="dot active"></div>
+  <div class="dot" onclick="goToQuais()"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="overlay-title">Adresse de l'emplacement</div>
+    <input class="overlay-input" type="text" inputmode="numeric" id="addrInput" placeholder="ex: 47-174-03" />
+    <div class="overlay-buttons">
+      <div class="overlay-cancel" onclick="closeOverlay()">Annuler</div>
+      <div class="overlay-ok" onclick="confirmMemory()">Valider</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const pickingData=[["00","73","27","71","30"],["01","56","14","38","03"],["02","39","01","05","76"],["04","05","75","39","22"],["05","88","62","06","95"],["06","71","49","73","68"],["08","37","23","07","14"],["09","20","10","74","87"],["11","86","84","08","33"],["13","52","58","42","79"],["15","18","32","76","25"],["17","84","06","10","71"],["18","67","93","77","44"],["19","50","80","44","17"],["20","33","67","11","90"],["22","99","41","45","36"],["23","82","28","12","09"],["24","65","15","79","82"],["25","48","02","46","55"],["26","31","89","13","28"],["28","97","63","47","74"],["29","80","50","14","47"],["31","46","24","78","93"],["33","12","98","82","39"],["35","78","72","16","85"],["36","61","59","83","58"],["37","11","09","33","08"],["38","27","33","17","04"],["39","10","20","84","77"],["40","93","07","51","50"],["42","59","81","85","96"],["44","25","55","19","42"],["45","08","42","86","15"],["46","91","29","53","88"],["47","74","16","20","61"],["48","57","03","87","34"],["50","23","77","21","80"],["51","06","64","88","53"],["53","72","38","22","99"],["54","55","25","89","72"],["55","38","12","56","45"],["57","04","86","90","91"],["59","70","60","24","37"],["60","53","47","91","10"],["62","19","21","25","56"],["63","02","08","92","29"],["64","85","95","59","02"],["66","51","69","93","48"],["67","34","56","60","21"],["68","17","43","27","94"],["69","00","30","94","67"],["71","66","04","28","13"],["72","49","91","95","86"],["73","32","78","62","59"],["74","15","65","29","32"],["75","98","52","96","05"],["77","64","26","30","51"],["79","30","00","64","97"],["80","13","87","31","70"],["81","96","74","98","43"],["82","79","61","65","16"],["83","62","48","32","89"],["84","45","35","99","62"],["86","11","09","33","08"],["88","77","83","67","54"],["91","26","44","68","73"],["93","92","18","02","19"],["94","75","05","69","92"],["95","58","92","36","65"],["97","24","66","70","11"],["98","07","53","37","84"],["99","90","40","04","57"]];
+
+let memories=JSON.parse(localStorage.getItem('pickingMemories')||'[]');
+let pendingCodes=null;
+let touchStartX=0;
+
+function goToQuais(){window.location.href='quais.html';}
+
+document.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX;});
+document.addEventListener('touchend',e=>{
+  const diff=touchStartX-e.changedTouches[0].screenX;
+  if(diff>80) goToQuais();
+});
+
+function handlePickClick(idx){
+  const input=document.getElementById("p"+idx);
+  if(input.value!==""){input.value="";resetPickingResults();}
+  for(let i=0;i<5;i++){if(i!==idx)document.getElementById("p"+i).value="";}
+  resetPickingResults();
+}
+
+function resetPickingResults(){
+  for(let i=0;i<5;i++){document.getElementById("r"+i).innerHTML='<span class="dim">—</span>';}
+}
+
+function searchPicking(colIdx){
+  const raw=document.getElementById("p"+colIdx).value.trim();
+  if(raw.length<2){resetPickingResults();return;}
+  const val=raw.padStart(2,"0");
+  let foundRow=null;
+  for(const row of pickingData){if(row[colIdx]===val){foundRow=row;break;}}
+  if(!foundRow){for(let i=0;i<5;i++)document.getElementById("r"+i).innerHTML='<span class="dim">—</span>';return;}
+  for(let i=0;i<5;i++)document.getElementById("r"+i).innerHTML=foundRow[i];
+  document.getElementById("p"+colIdx).blur();
+}
+
+function formatAddress(raw){
+  if(!raw||raw.trim()==='') return '';
+  let addr=raw.trim();
+  const sep=addr.includes('.')? '.' : '-';
+  const parts=addr.split(/[\.\-]/);
+  if(parts.length>0){
+    const last=parts[parts.length-1];
+    if(last===''||last.length<2){
+      if(last==='') parts[parts.length-1]='00';
+      else parts[parts.length-1]=last.padStart(2,'0');
+    }
+  }
+  const lastPart=parts[parts.length-1];
+  if(lastPart!=='00'&&!raw.includes(sep+'00')){
+    if(parts.length<3) parts.push('00');
+  }
+  return parts.join(sep);
+}
+
+function askAddress(){
+  const blanc=document.getElementById('r0').innerText.trim();
+  if(blanc===''||blanc==='—'){
+    const msg=document.getElementById('memMsg');
+    msg.style.color='#f87171';
+    msg.innerText='Aucun résultat à mémoriser !';
+    setTimeout(()=>msg.innerText='',2000);
+    return;
+  }
+  const codes=[];
+  for(let i=0;i<5;i++) codes.push(document.getElementById('r'+i).innerText.trim());
+  const dejaPresent=memories.some(m=>m.codes[0]===codes[0]);
+  if(dejaPresent){if(navigator.vibrate)navigator.vibrate(100);return;}
+  if(memories.length>=10){
+    const msg=document.getElementById('memMsg');
+    msg.style.color='#f87171';
+    msg.innerText='Vous avez atteint le nombre maximum de mémoires !';
+    setTimeout(()=>msg.innerText='',3000);
+    return;
+  }
+  pendingCodes=codes;
+  document.getElementById('addrInput').value='';
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('addrInput').focus(),100);
+}
+
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+  pendingCodes=null;
+}
+
+function confirmMemory(){
+  if(!pendingCodes) return;
+  const raw=document.getElementById('addrInput').value.trim();
+  const addr=formatAddress(raw);
+  memories.push({addr:addr,codes:pendingCodes});
+  localStorage.setItem('pickingMemories',JSON.stringify(memories));
+  document.getElementById('overlay').classList.remove('show');
+  pendingCodes=null;
+  const msg=document.getElementById('memMsg');
+  msg.style.color='#4ade80';
+  msg.innerText='Mémorisé !';
+  setTimeout(()=>msg.innerText='',2000);
+  renderMemories();
+}
+
+function resetMemory(){
+  memories=[];
+  localStorage.setItem('pickingMemories',JSON.stringify(memories));
+  document.getElementById('memMsg').innerText='';
+  renderMemories();
+}
+
+// ── ANIMATION CASCADE ──
+const N_CELLS  = 5;
+const SLIDE_D  = 800;
+const HALF_D   = 400;
+const PAUSE    = 200;
+
+function initLineAnimation(lineEl) {
+  const wraps  = lineEl.querySelectorAll('.mem-wrap');
+  const faces  = lineEl.querySelectorAll('.mem-cell');
+  const totalW = lineEl.offsetWidth;
+  const GAP    = totalW * 0.02;
+  const cellW  = (totalW - (N_CELLS - 1) * GAP) / N_CELLS;
+
+  wraps.forEach(w => { w.style.width = cellW + 'px'; });
+
+  const pos   = Array.from({length: N_CELLS}, (_, i) => i * (cellW + GAP));
+  const cur   = [...pos];
+  const zInit = [10, 8, 6, 4, 2];
+
+  wraps.forEach((w, i) => {
+    w.style.left   = pos[i] + 'px';
+    w.style.zIndex = zInit[i];
+  });
+
+  let collapsed = false;
+  let animating = false;
+
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function flipFace(face) {
+    face.style.transition = `transform ${HALF_D}ms ease-in`;
+    face.style.transform  = 'rotateX(90deg)';
+    await wait(HALF_D);
+    face.style.transition = `transform ${HALF_D}ms ease-out`;
+    face.style.transform  = 'rotateX(0deg)';
+  }
+
+  async function collapse(){
+    animating = true; collapsed = true;
+
+    // Carte 1 flippe seule
+    flipFace(faces[0]);
+    await wait(PAUSE);
+
+    // Cartes 2→5 : flip ET slide simultanément
+    for(let i = 1; i < N_CELLS; i++){
+      wraps[i].style.zIndex = zInit[0] - i;
+      cur[i] = pos[0];
+      wraps[i].style.left = cur[i] + 'px';
+      flipFace(faces[i]);
+      await wait(PAUSE);
+    }
+
+    await wait(SLIDE_D + HALF_D);
+    animating = false;
+  }
+
+  async function expand(){
+    animating = true; collapsed = false;
+
+    // Cartes 5→2 : flip ET slide simultanément
+    for(let i = N_CELLS - 1; i >= 1; i--){
+      wraps[i].style.zIndex = zInit[i];
+      cur[i] = pos[i];
+      wraps[i].style.left = cur[i] + 'px';
+      flipFace(faces[i]);
+      await wait(PAUSE);
+    }
+
+    await wait(PAUSE);
+    flipFace(faces[0]);
+    await wait(SLIDE_D + HALF_D);
+
+    animating = false;
+  }
+
+  wraps[0].addEventListener('click', () => {
+    if(animating) return;
+    collapsed ? expand() : collapse();
+  });
+}
+
+function renderMemories(){
+  const list=document.getElementById('memList');
+  if(memories.length===0){list.innerHTML='';return;}
+  let html='';
+  memories.forEach(mem=>{
+    html+='<div class="mem-block">';
+    if(mem.addr&&mem.addr!==''){
+      html+='<div class="mem-addr">'+mem.addr+'</div>';
+    }
+    html+='<div class="mem-line">';
+    for(let i=0;i<5;i++){
+      html+='<div class="mem-wrap c'+i+'"><div class="mem-cell">'+mem.codes[i]+'</div></div>';
+    }
+    html+='</div></div>';
+  });
+  list.innerHTML=html;
+
+  // Initialiser l'animation sur chaque ligne
+  document.querySelectorAll('.mem-line').forEach(line => initLineAnimation(line));
+}
+
+document.getElementById('addrInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter') confirmMemory();
+});
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js')
+    .then(()=>console.log('SW ok'))
+    .catch(e=>console.log('SW err',e));
+}
+
+async function displayVersion() {
+  try {
+    const response = await fetch('./service-worker.js');
+    const text = await response.text();
+    const match = text.match(/CACHE_NAME\s*=\s*['"]detrompeurs-(V[\d.]+)['"]/);
+    if (match && match[1]) {
+      document.getElementById('app-version').textContent = `- ${match[1]}`;
+    }
+  } catch (e) { console.log("Erreur version", e); }
+}
+
+renderMemories();
+displayVersion();
+document.getElementById("p0").focus();
+setTimeout(() => document.getElementById('mainTitle').classList.add('scrolled'), 100);
+</script>
+</body>
+</html>
