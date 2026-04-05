@@ -1,54 +1,56 @@
-const CACHE_NAME = 'detrompeurs-V2.0.8';
+const CACHE_NAME = 'detrompeurs-V2.0.9';
+
 const FILES = [
   './',
-  'index.html',
-  'quais.html',
-  'manifest.json',
-  'data.json',
-  'Icon-192.png',
-  'Icon-512.png',
-  'Carrefour NB.png'
+  './index.html',
+  './quais.html',
+  './manifest.json',
+  './data.json',
+  './Icon-192.png',
+  './Icon-512.png',
+  './Carrefour NB.png'
 ];
 
-self.addEventListener('install', function(e) {
+self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(FILES.map(f => new Request(f, { cache: 'reload' })));
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))
+    )
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function(e) {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(
-        keys.filter(function(k) { return k !== CACHE_NAME; })
-            .map(function(k) { return caches.delete(k); })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME)
+          .map((k) => caches.delete(k))
+      )
+    )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', function(e) {
+self.addEventListener('fetch', (e) => {
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      caches.match(e.request, { ignoreSearch: true, ignoreVary: true })
-        .then(function(response) {
-          return response || fetch(e.request).catch(function() {
-            return caches.match('index.html');
-          });
+      fetch(e.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
+          return response;
         })
+        .catch(() => caches.match('./index.html'))
     );
     return;
   }
+
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true, ignoreVary: true })
-      .then(function(response) {
-        return response || fetch(e.request).catch(function() {
-          return new Response('', { status: 404 });
-        });
-      })
+    caches.match(e.request, { ignoreSearch: true })
+      .then((response) =>
+        response || fetch(e.request).catch(() => new Response('', { status: 404 }))
+      )
   );
 });
